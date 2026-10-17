@@ -1,0 +1,9 @@
+{
+  "m": 1.2,
+  "c": 5,
+  "error": 1e-05,
+  "maxiter": 1000,
+  "seed": 42,
+  "n_produk": 7639,
+  "n_fitur": 40
+}
