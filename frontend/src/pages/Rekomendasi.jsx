@@ -7,6 +7,8 @@ import {
 import KartuProduk from "../components/KartuProduk"
 import DetailProduk from "../components/DetailProduk"
 import Dropdown from "../components/Dropdown"
+import IkonCari from "../components/IkonCari"
+import { opsiKategori, opsiTeks } from "../utils"
 
 const MODE = [
   { nama: "Masalah kulit", ikon: "✿", desc: "Mulai dari keluhan kulitmu", judul: "Apa masalah kulitmu?" },
@@ -14,37 +16,52 @@ const MODE = [
   { nama: "Kandungan aktif", ikon: "⚗", desc: "Pilih bahan yang kamu inginkan", judul: "Kandungan apa yang kamu cari?" },
 ]
 
+const OPSI_TOP_N = [5, 10, 15, 20].map(n => ({ value: n, label: String(n) }))
+
+const OPSI_URUTAN = [
+  { value: "mirip", label: "Urutkan: Paling mirip" },
+  { value: "harga-asc", label: "Harga terendah" },
+  { value: "harga-desc", label: "Harga tertinggi" },
+]
+
+function urutkan(produkList, urutan) {
+  const arr = [...produkList]
+  if (urutan === "harga-asc") arr.sort((a, b) => (a.price || 0) - (b.price || 0))
+  else if (urutan === "harga-desc") arr.sort((a, b) => (b.price || 0) - (a.price || 0))
+  return arr
+}
+
 function Rekomendasi() {
   const [searchParams] = useSearchParams()
   const [opsi, setOpsi] = useState(null)
   const [kategoriList, setKategoriList] = useState([])
   const [daftarProduk, setDaftarProduk] = useState([])
 
+  // masukan
   const [mode, setMode] = useState("Masalah kulit")
   const [masalah, setMasalah] = useState("")
   const [produkAcuan, setProdukAcuan] = useState("")
+  const [cariProduk, setCariProduk] = useState("")
   const [kandungan, setKandungan] = useState([])
-  const [topN, setTopN] = useState(5)
 
   // filter
   const [kategori, setKategori] = useState("")
   const [merek, setMerek] = useState([])
   const [hargaMin, setHargaMin] = useState("")
   const [hargaMax, setHargaMax] = useState("")
+  const [topN, setTopN] = useState(5)
 
-  // urutan & pencarian & detail
-  const [urutan, setUrutan] = useState("mirip")
-  const [cariProduk, setCariProduk] = useState("")
-  const [detailProduk, setDetailProduk] = useState(null)
-
+  // hasil
   const [hasil, setHasil] = useState(null)
+  const [urutan, setUrutan] = useState("mirip")
+  const [detailProduk, setDetailProduk] = useState(null)
 
   useEffect(() => {
     getOptions().then(data => {
       setOpsi(data)
-      if (data.masalah && data.masalah.length) setMasalah(data.masalah[0])
+      if (data.masalah?.length) setMasalah(data.masalah[0])
     })
-    getCategories().then(data => setKategoriList(data))
+    getCategories().then(setKategoriList)
   }, [])
 
   // Muat daftar produk, lalu pakai produk acuan dari katalog (?acuan=<product_id>) bila ada
@@ -56,9 +73,24 @@ function Rekomendasi() {
       if (!prod) return
       setMode("Produk acuan")
       setProdukAcuan(String(prod.product_id))
-      setCariProduk(prod.product + " — " + prod.brand)
     })
   }, [searchParams])
+
+  function pilihProduk(prod) {
+    setMode("Produk acuan")
+    setProdukAcuan(String(prod.product_id))
+  }
+
+  function gantiProduk() {
+    setProdukAcuan("")
+    setCariProduk("")
+  }
+
+  // Dari tombol "Jadikan acuan" di kartu hasil
+  function jadikanAcuan(prod) {
+    pilihProduk(prod)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
   async function cari() {
     const cats = kategori ? [kategori] : []
@@ -68,28 +100,11 @@ function Rekomendasi() {
     if (mode === "Masalah kulit") {
       data = await recommendByProblem(masalah, topN, cats, merek, min, max)
     } else if (mode === "Produk acuan") {
-      if (!produkAcuan) { alert("Pilih produk acuan dulu"); return }
       data = await recommendByProduct(Number(produkAcuan), topN, cats, merek, min, max)
     } else {
-      if (kandungan.length === 0) { alert("Pilih minimal satu kandungan"); return }
       data = await recommendByIngredients(kandungan, topN, cats, merek, min, max)
     }
     setHasil(data)
-  }
-
-  function hasilTerurut() {
-    if (!hasil || !hasil.hasil) return []
-    const arr = [...hasil.hasil]
-    if (urutan === "harga-asc") arr.sort((a, b) => (a.price || 0) - (b.price || 0))
-    else if (urutan === "harga-desc") arr.sort((a, b) => (b.price || 0) - (a.price || 0))
-    return arr
-  }
-
-  function pilihAcuan(prod) {
-    setMode("Produk acuan")
-    setProdukAcuan(String(prod.product_id))
-    setCariProduk(prod.product + " — " + prod.brand)
-    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   if (!opsi) return <p>Memuat...</p>
@@ -101,6 +116,7 @@ function Rekomendasi() {
   const siap = (mode === "Masalah kulit" && masalah)
     || (mode === "Produk acuan" && produkAcuan)
     || (mode === "Kandungan aktif" && kandungan.length > 0)
+  const daftarHasil = hasil?.hasil || []
 
   return (
     <div>
@@ -108,23 +124,19 @@ function Rekomendasi() {
       <p className="page-sub">Pilih jenis masukan, lalu perhalus dengan filter di sebelah kiri.</p>
 
       <div className="rec-wrap">
-        {/* KIRI: Filter */}
+        {/* Kiri: filter */}
         <aside className="filter-side">
           <div className="filter-title">Filter</div>
 
           <div className="filter-field">
             <label className="small-label">Kategori</label>
-            <Dropdown
-              options={kategoriList.map(k => ({ value: k.category, label: `${k.category} (${k.jumlah})` }))}
-              value={kategori} onChange={setKategori}
+            <Dropdown options={opsiKategori(kategoriList)} value={kategori} onChange={setKategori}
               placeholder="Pilih kategori..." isSearchable isClearable />
           </div>
 
           <div className="filter-field">
             <label className="small-label">Merek</label>
-            <Dropdown
-              options={(opsi.merek || []).map(m => ({ value: m, label: m }))}
-              value={merek} onChange={setMerek}
+            <Dropdown options={opsiTeks(opsi.merek || [])} value={merek} onChange={setMerek}
               placeholder="Pilih merek..." isMulti isSearchable />
           </div>
 
@@ -141,13 +153,11 @@ function Rekomendasi() {
 
           <div className="filter-field">
             <label className="small-label">Jumlah rekomendasi</label>
-            <Dropdown
-              options={[5, 10, 15, 20].map(n => ({ value: n, label: String(n) }))}
-              value={topN} onChange={setTopN} />
+            <Dropdown options={OPSI_TOP_N} value={topN} onChange={setTopN} />
           </div>
         </aside>
 
-        {/* KANAN: Input */}
+        {/* Kanan: masukan */}
         <main className="input-side">
           <div className="panel">
             <div className="langkah-judul"><span className="langkah-no">1</span>Cari berdasarkan</div>
@@ -162,7 +172,9 @@ function Rekomendasi() {
               ))}
             </div>
 
-            <div className="langkah-judul"><span className="langkah-no">2</span>{MODE.find(m => m.nama === mode).judul}</div>
+            <div className="langkah-judul">
+              <span className="langkah-no">2</span>{MODE.find(m => m.nama === mode).judul}
+            </div>
             <div className="input-area">
               {mode === "Masalah kulit" && (
                 <div className="chip-row">
@@ -182,43 +194,33 @@ function Rekomendasi() {
                       <div className="acuan-merek">{produkTerpilih.brand}</div>
                       <div className="acuan-nama">{produkTerpilih.product}</div>
                     </div>
-                    <button className="acuan-ganti" onClick={() => { setProdukAcuan(""); setCariProduk("") }}>
-                      Ganti
-                    </button>
+                    <button className="acuan-ganti" onClick={gantiProduk}>Ganti</button>
                   </div>
                 ) : (
                   <div className="acuan-cari">
                     <div className="cari-box">
-                      <span className="cari-ikon-kiri">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="11" cy="11" r="7" />
-                          <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
-                        </svg>
-                      </span>
+                      <span className="cari-ikon-kiri"><IkonCari /></span>
                       <input type="text" className="cari-input"
                         placeholder="Ketik nama produk atau merek..."
                         value={cariProduk}
-                        onChange={e => { setCariProduk(e.target.value); setProdukAcuan("") }} />
+                        onChange={e => setCariProduk(e.target.value)} />
                     </div>
-                    {cariProduk.length >= 2 && (
+                    {cariProduk.length >= 2 ? (
                       <div className="cari-hasil">
                         {saranProduk.length > 0 ? saranProduk.map(p => (
-                          <div key={p.product_id} className="cari-item"
-                            onClick={() => { setProdukAcuan(String(p.product_id)); setCariProduk(p.product + " — " + p.brand) }}>
+                          <div key={p.product_id} className="cari-item" onClick={() => pilihProduk(p)}>
                             {p.product} <span className="cari-merek">{p.brand}</span>
                           </div>
                         )) : <div className="cari-kosong">Produk tidak ditemukan</div>}
                       </div>
-                    )}
-                    {cariProduk.length < 2 && <p className="input-hint">Ketik minimal 2 huruf untuk mencari.</p>}
+                    ) : <p className="input-hint">Ketik minimal 2 huruf untuk mencari.</p>}
                   </div>
                 )
               )}
 
               {mode === "Kandungan aktif" && (
                 <>
-                  <Dropdown isMulti isSearchable
-                    options={opsi.kandungan.map(k => ({ value: k, label: k }))}
+                  <Dropdown isMulti isSearchable options={opsiTeks(opsi.kandungan)}
                     value={kandungan} onChange={setKandungan}
                     placeholder="Ketik atau pilih kandungan..." />
                   <p className="input-hint">Pilih satu atau lebih kandungan yang kamu cari.</p>
@@ -228,10 +230,7 @@ function Rekomendasi() {
 
             <div className="panel-aksi">
               <button className="btn-primary btn-cari" onClick={cari} disabled={!siap}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
-                </svg>
+                <IkonCari ukuran={16} tebal={2.2} />
                 Cari produk mirip
               </button>
             </div>
@@ -239,26 +238,21 @@ function Rekomendasi() {
         </main>
       </div>
 
-      {/* Hasil */}
       {hasil && (
         <div className="hasil">
-          {hasil.hasil && hasil.hasil.length > 0 ? (
+          {daftarHasil.length > 0 ? (
             <>
               <div className="hasil-head">
-                <div className="section-label">{hasil.hasil.length} produk paling mirip</div>
+                <div className="section-label">{daftarHasil.length} produk paling mirip</div>
                 <div className="urut-select">
-                  <Dropdown kecil value={urutan} onChange={setUrutan} options={[
-                    { value: "mirip", label: "Urutkan: Paling mirip" },
-                    { value: "harga-asc", label: "Harga terendah" },
-                    { value: "harga-desc", label: "Harga tertinggi" },
-                  ]} />
+                  <Dropdown kecil options={OPSI_URUTAN} value={urutan} onChange={setUrutan} />
                 </div>
               </div>
               <div className="produk-grid">
-                {hasilTerurut().map(p => (
+                {urutkan(daftarHasil, urutan).map(p => (
                   <KartuProduk key={p.product_id} produk={p}
                     onDetail={() => setDetailProduk(p)}
-                    onJadikanAcuan={pilihAcuan} />
+                    onJadikanAcuan={jadikanAcuan} />
                 ))}
               </div>
             </>
@@ -268,11 +262,7 @@ function Rekomendasi() {
         </div>
       )}
 
-      <DetailProduk
-        produk={detailProduk}
-        onClose={() => setDetailProduk(null)}
-        onJadikanAcuan={pilihAcuan}
-      />
+      <DetailProduk produk={detailProduk} onClose={() => setDetailProduk(null)} onJadikanAcuan={jadikanAcuan} />
     </div>
   )
 }

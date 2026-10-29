@@ -9,6 +9,7 @@ router = APIRouter()
 def options():
     return rekomendasi_controller.get_options()
 
+
 @router.get("/rekomendasi/masalah")
 def recommend_by_problem(
     masalah: str, top_n: int = 5,

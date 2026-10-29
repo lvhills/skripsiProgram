@@ -1,3 +1,4 @@
+import json
 import os
 from dotenv import load_dotenv
 
@@ -6,15 +7,10 @@ load_dotenv()
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-# Ganti sesuai nama folder artefakmu
+# Folder artefak hasil pelatihan FCM (fuzzifier m dibaca dari artefak/config.json)
 ARTIFACT_DIR = "artefak"
 
-FUZZIFIER = 1.2
-
-# Pemetaan masalah kulit ke kandungan aktif
-PETA_MASALAH = {
-    "Jerawat": ["Salicylic Acid (BHA)", "Tea Tree", "Azelaic Acid"],
-    "Kemerahan": ["Centella Asiatica / Cica", "Allantoin", "Panthenol (Provitamin B5)", "Green Tea"],
-    "Kering": ["Hyaluronic Acid", "Ceramide", "Squalane", "Panthenol (Provitamin B5)"],
-    "Kusam": ["Vitamin C", "Niacinamide (Vitamin B3)", "Arbutin", "Tranexamic Acid"],
-}
+# Pemetaan masalah kulit ke kandungan aktif (Tabel 3.4), disimpan notebook ke artefak
+# agar notebook dan backend selalu memakai pemetaan yang sama.
+with open(f"{ARTIFACT_DIR}/peta_masalah_kulit.json", encoding="utf-8") as f:
+    PETA_MASALAH = json.load(f)

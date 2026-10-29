@@ -1,49 +1,79 @@
-const WARNA_SEGMEN = ["#6FA8C7", "#7FAF6E", "#A987C0", "#D9A648", "#5FB39A"]
+import { WARNA_SEGMEN, formatRupiah, inisialMerek } from "../utils"
+
+function ProfilSegmen({ produk }) {
+  const anggota = produk.keanggotaan || []
+  if (anggota.length === 0) return <div className="seg-tag">{produk.segmen}</div>
+
+  return (
+    <>
+      <div className="mini-seg-bar">
+        {anggota.map((s, i) => s.persen > 0 && (
+          <div key={i} style={{ width: `${s.persen}%`, background: WARNA_SEGMEN[i % WARNA_SEGMEN.length] }}
+            title={`${s.segmen} ${s.persen}%`} />
+        ))}
+      </div>
+      <div className="mini-seg-top">
+        {[...anggota].sort((a, b) => b.persen - a.persen).map(s => (
+          <span key={s.segmen}>{s.segmen} {s.persen}%</span>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function RincianRating({ produk }) {
+  return (
+    <>
+      <div className="modal-sect">Rating ({produk.total_review} ulasan)</div>
+      <div className="rating-detail">
+        {[5, 4, 3, 2, 1].map(b => {
+          const jml = produk[`star_${b}`] || 0
+          return (
+            <div key={b} className="rating-baris">
+              <span className="rating-label">{b} ★</span>
+              <span className="rating-track">
+                <span className="rating-fill" style={{ width: `${jml / produk.total_review * 100}%` }} />
+              </span>
+              <span className="rating-jml">{jml}</span>
+            </div>
+          )
+        })}
+      </div>
+      {produk.recommended_percentage > 0 && (
+        <div className="rekomen-persen">{produk.recommended_percentage}% merekomendasikan produk ini</div>
+      )}
+    </>
+  )
+}
 
 function DetailProduk({ produk, onClose, onJadikanAcuan }) {
   if (!produk) return null
   const kand = produk.kandungan || []
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>×</button>
         <div className="modal-grid">
-          {/* Kiri: foto */}
           <div className="modal-foto">
             {produk.image_url
               ? <img src={produk.image_url} alt={produk.product} />
-              : <div className="modal-noimg">{produk.brand?.slice(0, 2).toUpperCase()}</div>}
+              : <div className="modal-noimg">{inisialMerek(produk.brand)}</div>}
           </div>
-          {/* Kanan: detail */}
+
           <div className="modal-detail">
             <div className="modal-brand">{produk.brand}</div>
             <h2 className="modal-name">{produk.product}</h2>
             {produk.rating > 0 && (
               <div className="modal-rating">★ {produk.rating} · {produk.total_review} ulasan</div>
             )}
-            <div className="modal-harga">Rp{Number(produk.price || 0).toLocaleString("id-ID")}</div>
+            <div className="modal-harga">{formatRupiah(produk.price)}</div>
 
             <div className="modal-sect">Kategori</div>
             <div>{produk.category}</div>
 
             <div className="modal-sect">Profil segmen</div>
-            {produk.keanggotaan && produk.keanggotaan.length > 0 ? (
-              <>
-                <div className="mini-seg-bar">
-                  {produk.keanggotaan.map((s, i) => (
-                    s.persen > 0 && (
-                      <div key={i} style={{ width: `${s.persen}%`, background: WARNA_SEGMEN[i % 5] }}
-                        title={`${s.segmen} ${s.persen}%`} />
-                    )
-                  ))}
-                </div>
-                <div className="mini-seg-top" style={{ marginTop: 8 }}>
-                  {[...produk.keanggotaan].sort((a, b) => b.persen - a.persen).map((s, i) => (
-                    <span key={i}>{s.segmen} {s.persen}%</span>
-                  ))}
-                </div>
-              </>
-            ) : <div className="seg-tag">{produk.segmen}</div>}
+            <ProfilSegmen produk={produk} />
 
             {kand.length > 0 && (
               <>
@@ -61,31 +91,7 @@ function DetailProduk({ produk, onClose, onJadikanAcuan }) {
               </>
             )}
 
-            {produk.total_review > 0 && (
-              <>
-                <div className="modal-sect">Rating ({produk.total_review} ulasan)</div>
-                <div className="rating-detail">
-                  {[5, 4, 3, 2, 1].map(b => {
-                    const jml = produk[`star_${b}`] || 0
-                    const persen = produk.total_review > 0 ? (jml / produk.total_review * 100) : 0
-                    return (
-                      <div key={b} className="rating-baris">
-                        <span className="rating-label">{b} ★</span>
-                        <span className="rating-track">
-                          <span className="rating-fill" style={{ width: `${persen}%` }} />
-                        </span>
-                        <span className="rating-jml">{jml}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-                {produk.recommended_percentage > 0 && (
-                  <div className="rekomen-persen">
-                    {produk.recommended_percentage}% merekomendasikan produk ini
-                  </div>
-                )}
-              </>
-            )}
+            {produk.total_review > 0 && <RincianRating produk={produk} />}
 
             <button className="btn-acuan modal-btn sticky-btn" onClick={() => { onJadikanAcuan(produk); onClose() }}>
               Cari rekomendasi

@@ -1,12 +1,21 @@
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { getCategories, getOptions, cariKatalog, katalogPerKategori } from "../api"
 import KartuProduk from "../components/KartuProduk"
 import DetailProduk from "../components/DetailProduk"
 import Dropdown from "../components/Dropdown"
+import IkonCari from "../components/IkonCari"
+import { opsiKategori, opsiTeks } from "../utils"
+
+const PER_HALAMAN = 12
+const BATAS_HASIL = 120 // batas jumlah hasil dari backend (cari_katalog limit)
+const PESAN_GAGAL = "Gagal memuat produk. Pastikan server backend berjalan."
 
 function Katalog() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  // pencarian & filter
   const [keyword, setKeyword] = useState("")
   const [kategoriList, setKategoriList] = useState([])
   const [kategori, setKategori] = useState("")
@@ -14,24 +23,32 @@ function Katalog() {
   const [merek, setMerek] = useState([])
   const [hargaMin, setHargaMin] = useState("")
   const [hargaMax, setHargaMax] = useState("")
+  const [bukaFilter, setBukaFilter] = useState(false)
 
+  // data & tampilan
   const [perKategori, setPerKategori] = useState(null)
   const [hasil, setHasil] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [detail, setDetail] = useState(null)
-  const [bukaFilter, setBukaFilter] = useState(false)
-  const [error, setError] = useState("")
-
   const [halaman, setHalaman] = useState(1)
-  const perHalaman = 12
-  const batasHasil = 120 // batas jumlah hasil dari backend (cari_katalog limit)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [detail, setDetail] = useState(null)
 
   useEffect(() => {
     getCategories().then(setKategoriList)
     getOptions().then(data => setMerekList(data.merek || []))
-    katalogPerKategori().then(setPerKategori)
-      .catch(() => setError("Gagal memuat katalog. Pastikan server backend berjalan."))
+    katalogPerKategori().then(setPerKategori).catch(() => setError(PESAN_GAGAL))
   }, [])
+
+  // Dari Beranda: /katalog?kategori=<nama> langsung menampilkan kategori itu
+  useEffect(() => {
+    const kat = searchParams.get("kategori")
+    if (!kat) return
+    cariKatalog("", kat).then(data => {
+      setKategori(kat)
+      setHasil(data)
+      setHalaman(1)
+    }).catch(() => setError(PESAN_GAGAL))
+  }, [searchParams])
 
   // kat/mrk bisa dioper langsung (mis. dari "Lihat semua") karena setState belum berlaku di render ini
   async function cari(kat = kategori, mrk = merek) {
@@ -42,19 +59,24 @@ function Katalog() {
     setError("")
     setLoading(true)
     try {
-      const data = await cariKatalog(keyword, kat, min, max, mrk)
-      setHasil(data)
+      setHasil(await cariKatalog(keyword, kat, min, max, mrk))
       setHalaman(1)
       setBukaFilter(false)
     } catch {
-      setError("Gagal memuat produk. Pastikan server backend berjalan.")
+      setError(PESAN_GAGAL)
     } finally {
       setLoading(false)
     }
   }
 
   function reset() {
-    setKeyword(""); setKategori(""); setMerek([]); setHargaMin(""); setHargaMax(""); setHasil(null); setError("")
+    setKeyword("")
+    setKategori("")
+    setMerek([])
+    setHargaMin("")
+    setHargaMax("")
+    setHasil(null)
+    setError("")
   }
 
   function lihatSemua(kat) {
@@ -78,13 +100,17 @@ function Katalog() {
     navigate(`/rekomendasi?acuan=${prod.product_id}`)
   }
 
-  const totalHalaman = hasil ? Math.ceil(hasil.length / perHalaman) : 0
-  const mulai = (halaman - 1) * perHalaman
-  const hasilHalaman = hasil ? hasil.slice(mulai, mulai + perHalaman) : []
-  const adaFilter = kategori || merek.length > 0 || hargaMin || hargaMax
+  function daftarKartu(produkList) {
+    return produkList.map(p => (
+      <KartuProduk key={p.product_id} produk={p} tanpaAksi
+        onDetail={() => setDetail(p)} onJadikanAcuan={keRekomendasi} />
+    ))
+  }
 
-  const opsiKategori = kategoriList.map(k => ({ value: k.category, label: `${k.category} (${k.jumlah})` }))
-  const opsiMerek = merekList.map(m => ({ value: m, label: m }))
+  const totalHalaman = hasil ? Math.ceil(hasil.length / PER_HALAMAN) : 0
+  const mulai = (halaman - 1) * PER_HALAMAN
+  const hasilHalaman = hasil ? hasil.slice(mulai, mulai + PER_HALAMAN) : []
+  const adaFilter = kategori || merek.length > 0 || hargaMin || hargaMax
 
   return (
     <div>
@@ -95,12 +121,7 @@ function Katalog() {
       <div className="kat-atas">
         <div className="kat-bar">
           <div className="cari-box">
-            <button className="cari-ikon" onClick={() => cari()} aria-label="Cari">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="7" />
-                <path d="M20 20l-3.5-3.5" strokeLinecap="round" />
-              </svg>
-            </button>
+            <button className="cari-ikon" onClick={() => cari()} aria-label="Cari"><IkonCari /></button>
             <input className="cari-input" placeholder="Cari nama produk atau merek..."
               value={keyword} onChange={e => setKeyword(e.target.value)}
               onKeyDown={e => e.key === "Enter" && cari()} />
@@ -113,18 +134,17 @@ function Katalog() {
           </button>
         </div>
 
-        {/* Panel filter melayang */}
         {bukaFilter && (
           <div className="filter-pop">
             <div className="filter-pop-row">
               <div className="filter-field">
                 <label className="small-label">Kategori</label>
-                <Dropdown options={opsiKategori} value={kategori} onChange={setKategori}
+                <Dropdown options={opsiKategori(kategoriList)} value={kategori} onChange={setKategori}
                   placeholder="Pilih kategori..." isSearchable isClearable />
               </div>
               <div className="filter-field">
                 <label className="small-label">Merek</label>
-                <Dropdown options={opsiMerek} value={merek} onChange={setMerek}
+                <Dropdown options={opsiTeks(merekList)} value={merek} onChange={setMerek}
                   placeholder="Pilih merek..." isMulti isSearchable />
               </div>
               <div className="filter-field">
@@ -168,17 +188,12 @@ function Katalog() {
                 </span>
               ))}
             </div>
-            {hasil.length >= batasHasil && (
+            {hasil.length >= BATAS_HASIL && (
               <p className="hasil-info">
-                Menampilkan {batasHasil} produk pertama. Persempit pencarian dengan kata kunci atau filter harga.
+                Menampilkan {BATAS_HASIL} produk pertama. Persempit pencarian dengan kata kunci atau filter harga.
               </p>
             )}
-            <div className="produk-grid">
-              {hasilHalaman.map(p => (
-                <KartuProduk key={p.product_id} produk={p} onDetail={() => setDetail(p)} tanpaAksi
-                  onJadikanAcuan={keRekomendasi} />
-              ))}
-            </div>
+            <div className="produk-grid">{daftarKartu(hasilHalaman)}</div>
             {totalHalaman > 1 && (
               <div className="paging">
                 <button disabled={halaman === 1} onClick={() => setHalaman(h => h - 1)}>‹ Sebelumnya</button>
@@ -208,12 +223,7 @@ function Katalog() {
               </svg>
             </button>
           </div>
-          <div className="produk-grid">
-            {perKategori[kat].map(p => (
-              <KartuProduk key={p.product_id} produk={p} onDetail={() => setDetail(p)} tanpaAksi
-                onJadikanAcuan={keRekomendasi} />
-            ))}
-          </div>
+          <div className="produk-grid">{daftarKartu(perKategori[kat])}</div>
         </div>
       ))}
 

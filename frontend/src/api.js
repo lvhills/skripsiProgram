@@ -1,77 +1,65 @@
 // Semua komunikasi ke backend dikumpulkan di sini
 const BACKEND = "http://127.0.0.1:8000"
 
-export async function getStatistics() {
-  const res = await fetch(`${BACKEND}/statistik`)
+async function ambil(path, options) {
+  const res = await fetch(`${BACKEND}${path}`, options)
   return res.json()
 }
 
-export async function getOptions() {
-  const res = await fetch(`${BACKEND}/opsi`)
-  return res.json()
-}
-
-export async function getProductList() {
-  const res = await fetch(`${BACKEND}/produk/daftar`)
-  return res.json()
-}
-
-export async function recommendByProblem(problem, topN, categories, brands, minPrice, maxPrice) {
+// Parameter filter yang dipakai ketiga jalur rekomendasi
+function paramsFilter(topN, categories, brands, minPrice, maxPrice) {
   const params = new URLSearchParams()
+  params.append("top_n", topN)
+  params.append("harga_min", minPrice || 0)
+  params.append("harga_max", maxPrice || 0)
+  categories?.forEach(c => params.append("kategori", c))
+  brands?.forEach(b => params.append("merek", b))
+  return params
+}
+
+export function getOptions() {
+  return ambil("/opsi")
+}
+
+export function getProductList() {
+  return ambil("/produk/daftar")
+}
+
+export function getCategories() {
+  return ambil("/kategori")
+}
+
+export function recommendByProblem(problem, topN, categories, brands, minPrice, maxPrice) {
+  const params = paramsFilter(topN, categories, brands, minPrice, maxPrice)
   params.append("masalah", problem)
-  params.append("top_n", topN)
-  params.append("harga_min", minPrice || 0)
-  params.append("harga_max", maxPrice || 0)
-  if (categories) categories.forEach(c => params.append("kategori", c))
-  if (brands) brands.forEach(b => params.append("merek", b))
-  const res = await fetch(`${BACKEND}/rekomendasi/masalah?${params}`)
-  return res.json()
+  return ambil(`/rekomendasi/masalah?${params}`)
 }
 
-export async function recommendByProduct(productId, topN, categories, brands, minPrice, maxPrice) {
-  const params = new URLSearchParams()
+export function recommendByProduct(productId, topN, categories, brands, minPrice, maxPrice) {
+  const params = paramsFilter(topN, categories, brands, minPrice, maxPrice)
   params.append("product_id", productId)
-  params.append("top_n", topN)
-  params.append("harga_min", minPrice || 0)
-  params.append("harga_max", maxPrice || 0)
-  if (categories) categories.forEach(c => params.append("kategori", c))
-  if (brands) brands.forEach(b => params.append("merek", b))
-  const res = await fetch(`${BACKEND}/rekomendasi/produk?${params}`)
-  return res.json()
+  return ambil(`/rekomendasi/produk?${params}`)
 }
 
-export async function recommendByIngredients(ingredients, topN, categories, brands, minPrice, maxPrice) {
-  const params = new URLSearchParams()
-  params.append("top_n", topN)
-  params.append("harga_min", minPrice || 0)
-  params.append("harga_max", maxPrice || 0)
-  if (categories) categories.forEach(c => params.append("kategori", c))
-  if (brands) brands.forEach(b => params.append("merek", b))
-  const res = await fetch(`${BACKEND}/rekomendasi/kandungan?${params}`, {
+export function recommendByIngredients(ingredients, topN, categories, brands, minPrice, maxPrice) {
+  const params = paramsFilter(topN, categories, brands, minPrice, maxPrice)
+  return ambil(`/rekomendasi/kandungan?${params}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(ingredients)
+    body: JSON.stringify(ingredients),
   })
-  return res.json()
 }
 
-export async function getCategories() {
-  const res = await fetch(`${BACKEND}/kategori`)
-  return res.json()
-}
-
-export async function cariKatalog(keyword, kategori, hargaMin, hargaMax, merek) {
+export function cariKatalog(keyword, kategori, hargaMin, hargaMax, merek) {
   const params = new URLSearchParams()
   if (keyword) params.append("keyword", keyword)
   if (kategori) params.append("kategori", kategori)
   if (hargaMin) params.append("harga_min", hargaMin)
   if (hargaMax) params.append("harga_max", hargaMax)
-  if (merek) merek.forEach(m => params.append("merek", m))
-  const res = await fetch(`${BACKEND}/katalog/cari?${params}`)
-  return res.json()
+  merek?.forEach(m => params.append("merek", m))
+  return ambil(`/katalog/cari?${params}`)
 }
 
-export async function katalogPerKategori() {
-  const res = await fetch(`${BACKEND}/katalog/per-kategori`)
-  return res.json()
+export function katalogPerKategori() {
+  return ambil("/katalog/per-kategori")
 }
