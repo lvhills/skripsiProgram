@@ -1,29 +1,29 @@
 """Service: logika perhitungan FCM dan cosine (tidak menyentuh database)."""
 import json
 import numpy as np
-import pandas as pd
 import config
 
 ARTEFAK = config.ARTIFACT_DIR
 
 
 def _baca_json(nama_file):
-    with open(f"{ARTEFAK}/{nama_file}", encoding="utf-8") as f:
+    with open(ARTEFAK / nama_file, encoding="utf-8") as f:
         return json.load(f)
 
 
 # ===== Muat artefak hasil pelatihan FCM =====
 # Ketiga matriks diindeks dengan nomor baris yang sama (urutan produk dari notebook).
-CENTERS = np.load(f"{ARTEFAK}/cluster_centers.npy")        # (c, 40)
-MEMBERSHIP = np.load(f"{ARTEFAK}/membership_matrix.npy")   # (n, c)
-FEATURES = np.load(f"{ARTEFAK}/feature_matrix.npy")        # (n, 40)
+CENTERS = np.load(ARTEFAK / "cluster_centers.npy")        # (c, 40)
+MEMBERSHIP = np.load(ARTEFAK / "membership_matrix.npy")   # (n, c)
+FEATURES = np.load(ARTEFAK / "feature_matrix.npy")        # (n, 40)
 feature_names = _baca_json("feature_names.json")
 seg_labels = _baca_json("segment_labels.json")
 M = _baca_json("config.json")["m"]  # fuzzifier yang dipakai saat pelatihan
 
 # ===== Pemetaan product_id <-> baris artefak =====
-# membership.parquet menyimpan product_id untuk tiap baris, sesuai urutan matriks.
-product_ids = pd.read_parquet(f"{ARTEFAK}/membership.parquet")["product_id"].to_numpy()
+# product_ids.npy menyimpan product_id untuk tiap baris, sesuai urutan matriks
+# (diambil dari kolom product_id di membership.parquet).
+product_ids = np.load(ARTEFAK / "product_ids.npy")
 id_to_row = {int(pid): i for i, pid in enumerate(product_ids)}
 
 fni = {name: k for k, name in enumerate(feature_names)}
@@ -98,27 +98,6 @@ def _ke_hasil(idx, sim):
             for i, s in zip(idx, sim) if np.isfinite(s)]
 
 
-# ===== DEBUG sementara: hapus setelah selesai =====
-# produk_metadata.parquet berurutan sama dengan MEMBERSHIP/FEATURES, jadi produk[i] cocok dengan idx
-produk = pd.read_parquet(f"{ARTEFAK}/produk_metadata.parquet").to_dict("records")
-
-
-def _cetak_debug(u_query, idx, sim, sk):
-    A = u_query / (np.linalg.norm(u_query) + 1e-12)
-    B = MEMBERSHIP / (np.linalg.norm(MEMBERSHIP, axis=1, keepdims=True) + 1e-12)
-    sim_semua = B @ A  # skor semua produk, sebelum filter dan top-N
-    print('FEATURES ada:', 'FEATURES' in globals())
-    print('skor  :', np.round(sim[:5], 8))
-    print('kandungan:', np.round(sk[:5], 3))
-    print('jumlah produk DB   :', len(produk))
-    print('baris FEATURES     :', FEATURES.shape)
-    print('baris MEMBERSHIP   :', MEMBERSHIP.shape)
-    print('skor maksimum semua:', float(np.round(sim_semua.max(), 8)))
-    print('produk skor 1.0    :', int((np.round(sim_semua, 8) == 1.0).sum()))
-    for i, s, k in list(zip(idx, sim, sk))[:5]:
-        print(f'  idx={i}  {s:.8f}  {k:.3f}  {produk[i]["product"]}  {produk[i]["bahan_aktif"]}')
-
-
 # ===== Tiga jalur masukan =====
 def rekomendasi_dari_kandungan(kandungan, top_n=5, allowed_ids=None):
     """Jalur masalah kulit / kandungan aktif: dari daftar kandungan."""
@@ -126,7 +105,6 @@ def rekomendasi_dari_kandungan(kandungan, top_n=5, allowed_ids=None):
     uq = proyeksi_keanggotaan(xq, CENTERS)
     idx, sim, sk = topn_cosine(uq, MEMBERSHIP, n=top_n, mask=_mask_dari_ids(allowed_ids),
                                x_query=xq, X=FEATURES)
-    _cetak_debug(uq, idx, sim, sk)  # DEBUG sementara
     return _ke_hasil(idx, sim)
 
 
@@ -137,7 +115,6 @@ def compute_topn_from_product(product_id, top_n=5, allowed_ids=None):
         return []
     idx, sim, sk = topn_cosine(MEMBERSHIP[ref], MEMBERSHIP, n=top_n, mask=_mask_dari_ids(allowed_ids),
                                exclude=ref, x_query=FEATURES[ref], X=FEATURES)
-    _cetak_debug(MEMBERSHIP[ref], idx, sim, sk)  # DEBUG sementara
     return _ke_hasil(idx, sim)
 
 
