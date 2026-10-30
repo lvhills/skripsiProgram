@@ -1,8 +1,9 @@
 // Semua komunikasi ke backend dikumpulkan di sini
-const BACKEND = "http://127.0.0.1:8000"
+// Alamat backend dari variabel lingkungan (.env lokal, atau Environment Variables di Vercel)
+const API_URL = import.meta.env.VITE_API_URL
 
 async function ambil(path, options) {
-  const res = await fetch(`${BACKEND}${path}`, options)
+  const res = await fetch(`${API_URL}${path}`, options)
   return res.json()
 }
 
