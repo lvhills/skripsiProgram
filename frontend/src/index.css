@@ -2,10 +2,13 @@
 
 /* ===== Dasar ===== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+img, svg { max-width: 100%; }
 body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   color: #1A1A1A;
   background: #FCEFF3;
+  overflow-x: hidden;
 }
 .hero h1, .brand, .page-title, .card-num, .section-title {
   font-family: 'Fraunces', serif;
@@ -465,37 +468,193 @@ body {
   display: flex; justify-content: space-between; gap: 16px; color: #999999; font-size: 12px;
 }
 
-/* ===== Responsif ===== */
-@media (max-width: 1100px) {
+/* ===== Responsif =====
+   Pastikan index.html punya:
+   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+   Breakpoint:
+   >= 1400px : monitor PC besar
+   <= 1279px : laptop kecil
+   <= 1023px : tablet landscape
+   <= 767px  : tablet portrait
+   <= 599px  : HP
+   <= 380px  : HP kecil
+*/
+
+/* ---- PC besar ---- */
+@media (min-width: 1400px) {
+  .container, .footer-main, .footer-bottom { max-width: 1280px; }
+  .produk-grid { grid-template-columns: repeat(5, 1fr); }
+}
+
+/* ---- Laptop ---- */
+@media (max-width: 1279px) {
+  .container { padding: 24px 32px; }
+  .header { padding: 14px 32px; }
+  .footer { padding-left: 32px; padding-right: 32px; }
+  .hero { padding: 36px; }
+  .hero h1 { font-size: 34px; }
+}
+
+/* ---- Tablet landscape ---- */
+@media (max-width: 1023px) {
+  .container { padding: 20px 24px; }
+  .header { padding: 14px 24px; }
+  .footer { padding-left: 24px; padding-right: 24px; }
   .produk-grid { grid-template-columns: repeat(3, 1fr); }
+  .filter-side { width: 230px; }
+  .hero h1 { font-size: 32px; }
+  .section-title { font-size: 24px; margin: 32px 0 20px; }
+  .home-benefit-grid { gap: 12px; }
+  .home-benefit-card { padding: 20px; }
+  .home-cta, .info-cta { padding: 28px; }
+  .info-alur { gap: 20px; }
+  .info-alur-item:not(:last-child)::after { right: -26px; width: 32px; height: 32px; font-size: 16px; }
+  .modal-grid { grid-template-columns: 260px 1fr; }
+  .modal-detail { padding: 28px; }
 }
-@media (max-width: 900px) {
-  .produk-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (max-width: 768px) {
-  .produk-grid { grid-template-columns: 1fr; }
-  .kat-atas { position: static; }
+
+/* ---- Tablet portrait ---- */
+@media (max-width: 767px) {
+  .container { padding: 16px 20px; }
+
+  /* Navbar: brand di atas, menu di bawah dan bisa digeser */
+  .header { flex-wrap: wrap; gap: 10px; padding: 12px 20px; }
+  .nav-links {
+    width: 100%; overflow-x: auto; gap: 6px; padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
+  .nav-links a { flex-shrink: 0; padding: 8px 14px; font-size: 14px; }
+  .brand { font-size: 22px; }
+
+  /* Beranda */
+  .hero { padding: 28px; border-radius: 16px; }
+  .hero h1 { font-size: 28px; }
+  .hero p { font-size: 15px; }
+  .kat-row { justify-content: flex-start; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
+  .cards { flex-direction: column; }
+  .home-extra, .cara-kerja { margin-top: 36px; }
+  .home-extra-title { font-size: 24px; }
+  .home-benefit-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .home-cta { flex-direction: column; align-items: flex-start; }
+  .home-cta h2 { font-size: 23px; }
+
+  /* Rekomendasi */
   .rec-wrap { flex-direction: column; }
   .filter-side { width: 100%; }
+  .input-side .panel { height: auto; }
   .mode-row { grid-template-columns: 1fr; }
+  .mode-btn { flex-direction: row; align-items: center; gap: 12px; }
+  .mode-ikon { margin-bottom: 0; flex-shrink: 0; }
+  .hasil-head { flex-wrap: wrap; gap: 10px; }
+
+  /* Katalog */
+  .kat-atas { position: static; padding-top: 4px; }
+  .paging { gap: 10px; margin: 20px 0; }
+
+  /* Grid produk tetap 2 kolom di tablet */
+  .produk-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Informasi */
   .info-alur, .info-dua { grid-template-columns: 1fr; }
+  .info-alur { gap: 36px; }
   .info-alur-item:not(:last-child)::after {
-    right: auto; left: 50%; top: auto; bottom: -30px; transform: translateX(-50%) rotate(90deg);
+    right: auto; left: 50%; top: auto; bottom: -30px;
+    transform: translateX(-50%) rotate(90deg);
   }
   .informasi-page .page-title { font-size: 26px; }
-}
-@media (max-width: 640px) {
-  /* Popup: satu kolom, seluruh popup yang di-scroll */
-  .modal-box { display: block; overflow-y: auto; }
-  .modal-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
-  .modal-foto { border-right: none; border-bottom: 1px solid #F3E1E6; min-height: 0; height: 260px; }
-  .modal-detail { overflow: visible; }
-  .info-cta { align-items: flex-start; flex-direction: column; padding: 24px; }
-  .info-cta h2 { font-size: 21px; }
-  .info-cta-button { width: 100%; text-align: center; }
-}
-@media (max-width: 600px) {
-  .footer { margin-top: 40px; padding: 28px 20px 18px; }
+  .info-cta { flex-direction: column; align-items: flex-start; }
+  .info-cta h2 { font-size: 22px; }
+
+  /* Footer */
+  .footer { margin-top: 48px; padding: 28px 20px 18px; }
   .footer-main { flex-direction: column; gap: 28px; }
+  .footer-brand { max-width: none; }
+}
+
+/* ---- HP ---- */
+@media (max-width: 599px) {
+  .container { padding: 14px 16px; }
+  .header { padding: 10px 16px; }
+  .brand-sub { font-size: 12px; }
+
+  .page-title { font-size: 24px; }
+  .section-title { font-size: 22px; margin: 28px 0 16px; }
+  .panel { padding: 18px; border-radius: 16px; margin-bottom: 20px; }
+  .filter-side { padding: 16px; }
+
+  .hero { padding: 24px 20px; }
+  .hero h1 { font-size: 25px; }
+  .hero-btns { flex-direction: column; }
+  .hero-btn-solid, .hero-btn-outline { text-align: center; }
+  .kat-item { width: 80px; }
+  .kat-img { width: 64px; height: 64px; }
+
+  .home-extra-title { font-size: 21px; }
+  .home-benefit-grid { grid-template-columns: 1fr; }
+  .home-cta { padding: 24px 20px; }
+  .home-cta-button, .info-cta-button { width: 100%; text-align: center; }
+  .info-cta { padding: 24px 20px; }
+
+  /* Pencarian & filter katalog */
+  .kat-bar { flex-wrap: wrap; }
+  .kat-bar .cari-box { flex: 1 1 100%; }
+  .btn-filter { flex: 1; justify-content: center; }
+  .filter-pop { padding: 16px; }
+  .filter-pop-row { flex-direction: column; gap: 12px; }
+  .filter-pop-row .filter-field { min-width: 0; width: 100%; }
+  .filter-pop-btns > * { flex: 1; }
+  .price-range { flex-wrap: wrap; }
+  .price-range input { flex: 1 1 100px; }
+  .urut-select { min-width: 0; width: 100%; }
+  .hasil-head > * { width: 100%; }
+
+  /* Produk 1 kolom di HP, tombol ukuran nyaman disentuh */
+  .produk-grid { grid-template-columns: 1fr; gap: 12px; }
+  .pcard2-head { height: 170px; }
+  .pcard2-btns > button { min-height: 42px; }
+  .btn-primary, .btn-detail, .btn-acuan, .chip { min-height: 42px; }
+  .panel-aksi .btn-primary { width: 100%; }
+  .acuan-terpilih { flex-wrap: wrap; }
+  .cari-input, .price-range input, .filter-pop-row input { font-size: 16px; } /* cegah auto-zoom iOS */
+
+  .section-label { font-size: 12px; }
+  .kat-section-title { font-size: 18px; }
+  .paging { flex-wrap: wrap; }
+
+  /* Popup detail: satu kolom, seluruh popup yang di-scroll */
+  .modal-overlay { padding: 10px; align-items: flex-end; }
+  .modal-box { display: block; overflow-y: auto; max-height: 92vh; border-radius: 16px; }
+  .modal-grid { grid-template-columns: 1fr; grid-template-rows: auto; }
+  .modal-foto { border-right: none; border-bottom: 1px solid #F3E1E6; min-height: 0; height: 240px; }
+  .modal-detail { overflow: visible; padding: 20px; }
+  .modal-name { font-size: 21px; }
+  .modal-harga { font-size: 22px; }
+  .modal-close { background: rgba(255,255,255,0.9); border-radius: 50%; width: 36px; height: 36px; top: 10px; right: 10px; line-height: 1; }
+
+  .footer { margin-top: 40px; }
   .footer-bottom { flex-direction: column; gap: 8px; }
+}
+
+/* ---- HP kecil ---- */
+@media (max-width: 380px) {
+  .container { padding: 12px; }
+  .header { padding: 10px 12px; }
+  .brand { font-size: 20px; }
+  .hero h1 { font-size: 22px; }
+  .hero p { font-size: 14px; }
+  .pcard2-btns { flex-direction: column; }
+  .chip { padding: 9px 14px; font-size: 13px; }
+}
+
+/* ---- Layar sentuh: matikan efek hover yang mengganggu ---- */
+@media (hover: none) {
+  .info-cta-button:hover { transform: none; }
+  .lihat-semua:hover svg { transform: none; }
+}
+
+/* ---- Hormati pengaturan "kurangi animasi" ---- */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
 }
