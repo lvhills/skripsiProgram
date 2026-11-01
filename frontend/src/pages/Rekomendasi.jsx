@@ -6,6 +6,7 @@ import {
 } from "../api"
 import KartuProduk from "../components/KartuProduk"
 import DetailProduk from "../components/DetailProduk"
+import { GridSkeleton } from "../components/Skeleton"
 import Dropdown from "../components/Dropdown"
 import IkonCari from "../components/IkonCari"
 import { opsiKategori, opsiTeks } from "../utils"
@@ -53,6 +54,7 @@ function Rekomendasi() {
 
   // hasil
   const [hasil, setHasil] = useState(null)
+  const [memuat, setMemuat] = useState(false)
   const [urutan, setUrutan] = useState("mirip")
   const [detailProduk, setDetailProduk] = useState(null)
 
@@ -97,17 +99,50 @@ function Rekomendasi() {
     const min = Number(hargaMin) || 0
     const max = Number(hargaMax) || 0
     let data
-    if (mode === "Masalah kulit") {
-      data = await recommendByProblem(masalah, topN, cats, merek, min, max)
-    } else if (mode === "Produk acuan") {
-      data = await recommendByProduct(Number(produkAcuan), topN, cats, merek, min, max)
-    } else {
-      data = await recommendByIngredients(kandungan, topN, cats, merek, min, max)
+    setMemuat(true)
+    try {
+      if (mode === "Masalah kulit") {
+        data = await recommendByProblem(masalah, topN, cats, merek, min, max)
+      } else if (mode === "Produk acuan") {
+        data = await recommendByProduct(Number(produkAcuan), topN, cats, merek, min, max)
+      } else {
+        data = await recommendByIngredients(kandungan, topN, cats, merek, min, max)
+      }
+      setHasil(data)
+    } finally {
+      setMemuat(false)
     }
-    setHasil(data)
   }
 
-  if (!opsi) return <p>Memuat...</p>
+  if (!opsi) return (
+    <div>
+      <h2 className="page-title">Cari rekomendasi</h2>
+      <p className="page-sub">Pilih jenis masukan, lalu perhalus dengan filter di sebelah kiri.</p>
+      <div className="rec-wrap" role="status" aria-label="Memuat">
+        <div className="filter-side">
+          <div className="skel skel-line skel-tebal" style={{ width: "35%", marginBottom: 20 }} />
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="filter-field">
+              <div className="skel skel-line" style={{ width: "50%", marginBottom: 8 }} />
+              <div className="skel skel-input" />
+            </div>
+          ))}
+        </div>
+        <div className="input-side">
+          <div className="panel">
+            <div className="skel skel-line skel-tebal" style={{ width: "30%", marginBottom: 16 }} />
+            <div className="mode-row">
+              {[1, 2, 3].map(i => <div key={i} className="skel skel-mode" />)}
+            </div>
+            <div className="skel skel-line skel-tebal" style={{ width: "40%", marginBottom: 16 }} />
+            <div className="chip-row">
+              {[90, 120, 80, 110].map(w => <div key={w} className="skel skel-chip-besar" style={{ width: w }} />)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 
   const produkTerpilih = produkAcuan ? daftarProduk.find(p => String(p.product_id) === produkAcuan) : null
   const saranProduk = daftarProduk
@@ -229,7 +264,7 @@ function Rekomendasi() {
             </div>
 
             <div className="panel-aksi">
-              <button className="btn-primary btn-cari" onClick={cari} disabled={!siap}>
+              <button className="btn-primary btn-cari" onClick={cari} disabled={!siap || memuat}>
                 <IkonCari ukuran={16} tebal={2.2} />
                 Cari produk mirip
               </button>
@@ -238,7 +273,16 @@ function Rekomendasi() {
         </main>
       </div>
 
-      {hasil && (
+      {memuat && (
+        <div className="hasil">
+          <div className="hasil-head">
+            <div className="skel skel-line skel-tebal" style={{ width: 180 }} />
+          </div>
+          <GridSkeleton jumlah={topN} />
+        </div>
+      )}
+
+      {!memuat && hasil && (
         <div className="hasil">
           {daftarHasil.length > 0 ? (
             <>

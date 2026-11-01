@@ -94,7 +94,7 @@ function DetailProduk({ produk, onClose, onJadikanAcuan }) {
             {produk.total_review > 0 && <RincianRating produk={produk} />}
 
             <button className="btn-acuan modal-btn sticky-btn" onClick={() => { onJadikanAcuan(produk); onClose() }}>
-              Cari rekomendasi
+              Cari Rekomendasi
             </button>
           </div>
         </div>
