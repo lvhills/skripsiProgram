@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { getCategories, getOptions, cariKatalog, katalogPerKategori } from "../api"
 import KartuProduk from "../components/KartuProduk"
 import DetailProduk from "../components/DetailProduk"
+import { GridSkeleton } from "../components/Skeleton"
 import Dropdown from "../components/Dropdown"
 import IkonCari from "../components/IkonCari"
 import { opsiKategori, opsiTeks } from "../utils"
@@ -167,7 +168,7 @@ function Katalog() {
       </div>
 
       {error && <p className="kat-error">{error}</p>}
-      {loading && <p>Memuat...</p>}
+      {loading && <GridSkeleton />}
 
       {/* Mode cari/filter */}
       {!loading && hasil && (
@@ -211,7 +212,14 @@ function Katalog() {
       )}
 
       {/* Mode awal: per kategori */}
-      {!loading && !hasil && !perKategori && !error && <p>Memuat katalog...</p>}
+      {!loading && !hasil && !perKategori && !error && [1, 2].map(i => (
+        <div key={i} className="kat-section">
+          <div className="kat-section-head">
+            <div className="skel skel-line skel-judul" />
+          </div>
+          <GridSkeleton jumlah={4} />
+        </div>
+      ))}
       {!loading && !hasil && perKategori && Object.keys(perKategori).map(kat => (
         <div key={kat} className="kat-section">
           <div className="kat-section-head">
