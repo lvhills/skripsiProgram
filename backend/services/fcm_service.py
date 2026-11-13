@@ -100,11 +100,27 @@ def _ke_hasil(idx, sim):
 
 # ===== Tiga jalur masukan =====
 def rekomendasi_dari_kandungan(kandungan, top_n=5, allowed_ids=None):
-    """Jalur masalah kulit / kandungan aktif: dari daftar kandungan."""
+    """Jalur masalah kulit: dari daftar kandungan hasil pemetaan masalah kulit."""
     xq = vektor_dari_kandungan(kandungan)
     uq = proyeksi_keanggotaan(xq, CENTERS)
     idx, sim, sk = topn_cosine(uq, MEMBERSHIP, n=top_n, mask=_mask_dari_ids(allowed_ids),
                                x_query=xq, X=FEATURES)
+    return _ke_hasil(idx, sim)
+
+
+def topn_kandungan(kandungan, top_n=5, allowed_ids=None):
+    """Jalur kandungan aktif: dari daftar kandungan yang dipilih pengguna.
+
+    Kunci utama: cosine similarity langsung atas vektor multi-hot 40-dim
+    (masukan vs FEATURES), tanpa proyeksi ke ruang keanggotaan; dibulatkan
+    4 desimal dan menjadi skor yang dikembalikan.
+    Pemecah seri: cosine similarity atas vektor derajat keanggotaan
+    (proyeksi masukan vs MEMBERSHIP), hanya untuk mengurutkan skor utama yang sama.
+    """
+    xq = vektor_dari_kandungan(kandungan)
+    uq = proyeksi_keanggotaan(xq, CENTERS)
+    idx, sim, sk = topn_cosine(xq, FEATURES, n=top_n, mask=_mask_dari_ids(allowed_ids),
+                               x_query=uq, X=MEMBERSHIP)
     return _ke_hasil(idx, sim)
 
 

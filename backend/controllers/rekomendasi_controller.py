@@ -37,7 +37,7 @@ def recommend_by_problem(problem, top_n=5, categories=None, brands=None, min_pri
 
 def recommend_by_ingredients(ingredients, top_n=5, categories=None, brands=None, min_price=0, max_price=0):
     allowed = _filter_ids(categories, brands, min_price, max_price)
-    topn = fcm_service.rekomendasi_dari_kandungan(ingredients, top_n, allowed)
+    topn = fcm_service.topn_kandungan(ingredients, top_n, allowed)
     return {"kandungan": ingredients, "hasil": _build_results(topn)}
 
 
