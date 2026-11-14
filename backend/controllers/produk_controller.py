@@ -17,6 +17,10 @@ def get_categories_with_image():
     return produk_repository.get_categories_with_image()
 
 
+def get_metadata():
+    return {"data_diperbarui_terakhir": produk_repository.get_data_diperbarui_terakhir()}
+
+
 def cari_katalog(keyword="", kategori=None, harga_min=0, harga_max=0, merek=None):
     data = produk_repository.cari_katalog(keyword, kategori, harga_min, harga_max, merek)
     return _lengkapi_segmen(data)

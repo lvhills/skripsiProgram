@@ -7,7 +7,8 @@ supabase = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
 
 KOLOM_PRODUK = ("product_id, product, brand, category, price, rating, "
                 "star_1, star_2, star_3, star_4, star_5, total_review, "
-                "recommended_percentage, image_url, bahan_aktif, description")
+                "recommended_percentage, image_url, bahan_aktif, description, "
+                "data_diperbarui_pada")
 
 BATAS_PER_HALAMAN = 1000  # batas baris per permintaan Supabase
 
@@ -89,6 +90,18 @@ def get_filtered_ids(categories=None, brands=None, min_price=0, max_price=0):
     rows = _ambil_semua("product_id", kategori=categories, merek=brands,
                         harga_min=min_price, harga_max=max_price)
     return [d["product_id"] for d in rows]
+
+
+def get_data_diperbarui_terakhir():
+    """Nilai terbesar data_diperbarui_pada (ISO string), atau None bila semua NULL.
+
+    Sengaja tanpa lru_cache: nilai ini berubah setiap job pembaruan berjalan.
+    NULL disaring dulu karena urutan DESC di PostgreSQL menaruh NULL paling atas.
+    """
+    hasil = (supabase.table("produk").select("data_diperbarui_pada")
+             .not_.is_("data_diperbarui_pada", "null")
+             .order("data_diperbarui_pada", desc=True).limit(1).execute())
+    return hasil.data[0]["data_diperbarui_pada"] if hasil.data else None
 
 
 # ===== Katalog =====

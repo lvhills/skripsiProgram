@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import { useTanggalData } from "../hooks/useTanggalData"
 
 const ALUR = [
   {
@@ -33,6 +34,8 @@ const HASIL = [
 ]
 
 function Informasi() {
+  const tanggalData = useTanggalData()
+
   return (
     <div className="informasi-page">
       <div className="page-title">Informasi</div>
@@ -85,6 +88,11 @@ function Informasi() {
         <strong>Perlu diketahui.</strong> Rekomendasi hanya berdasarkan data kandungan aktif
         di katalog. Skor kemiripan bukan ukuran kecocokan medis, dan hasilnya tidak
         menggantikan konsultasi dengan dokter kulit.
+        <p className="info-data">
+          Data produk berasal dari Female Daily dan diperbarui secara berkala
+          {tanggalData && `, terakhir pada ${tanggalData}`}. Karena itu, harga dan ulasan
+          yang ditampilkan dapat berbeda dari yang tertera di sumbernya.
+        </p>
       </section>
 
       {/* Ajakan mencoba */}
