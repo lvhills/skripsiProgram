@@ -71,6 +71,11 @@ def rapikan_nama(s):
     return (s or "").strip().casefold() if isinstance(s, str) else ""
 
 
+def nama_dari(obj):
+    """brand dan product di API berupa objek bersarang; namanya ada di field 'name'."""
+    return obj.get("name") if isinstance(obj, dict) else None
+
+
 def baca_produk(item):
     """Ambil slug, nama, dan nilai tampilan dari satu item API."""
     rating = item.get("rating")
@@ -87,8 +92,8 @@ def baca_produk(item):
     nilai = {k: angka(v, bulat=k in KOLOM_INT) for k, v in nilai.items()}
     return {
         "slug": item.get("slug"),
-        "brand": item.get("brand"),
-        "product": item.get("product"),
+        "brand": nama_dari(item.get("brand")),
+        "product": nama_dari(item.get("product")),
         "nilai": nilai,
     }
 
@@ -258,15 +263,21 @@ def main():
     elif persen_nama < MIN_PERSEN_NAMA_COCOK:
         alasan.append(f"kecocokan nama {persen_nama:.2f}% < {MIN_PERSEN_NAMA_COCOK}%")
 
-    # 5. Bagi dua jalur (hanya baris yang slug DAN namanya cocok)
+    # 5. Bagi dua jalur (hanya baris yang slug DAN namanya cocok).
+    #    Kolom bernilai None (tak terbaca dari API) dilewati: nilai lama di DB dibiarkan.
+    #    Bila semua kolom None, baris diperlakukan tidak berubah (hanya tanggal).
     berubah, tetap = [], []
+    ada_none = semua_none = 0
     for r, p in nama_ok:
-        beda = {k: v for k, v in p["nilai"].items() if not sama(r.get(k), v)}
-        (berubah if beda else tetap).append((r["slug"], p["nilai"], beda))
-    kosong = sum(1 for _, n, beda in berubah if any(beda[k] is None for k in beda))
+        terbaca = {k: v for k, v in p["nilai"].items() if v is not None}
+        ada_none += len(terbaca) < len(KOLOM_NILAI)
+        semua_none += not terbaca
+        beda = {k: v for k, v in terbaca.items() if not sama(r.get(k), v)}
+        (berubah if beda else tetap).append((r["slug"], terbaca, beda))
     print(f"[RIN] berubah: {len(berubah)}, tidak berubah: {len(tetap)}, "
-          f"dilewati karena nama beda: {len(nama_beda)}, "
-          f"baris berubah yang memuat nilai None: {kosong}")
+          f"dilewati karena nama beda: {len(nama_beda)}")
+    print(f"[RIN] produk dengan kolom None (kolom itu dilewati): {ada_none}, "
+          f"di antaranya semua kolom None (hanya tanggal): {semua_none}")
     for slug, _, beda in berubah[:5]:
         print(f"      contoh berubah {slug}: {beda}")
 
