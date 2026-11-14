@@ -6,7 +6,7 @@ import DetailProduk from "../components/DetailProduk"
 import { GridSkeleton } from "../components/Skeleton"
 import Dropdown from "../components/Dropdown"
 import IkonCari from "../components/IkonCari"
-import { opsiKategori, opsiTeks } from "../utils"
+import { opsiKategori, opsiTeks, formatRupiah } from "../utils"
 
 const PER_HALAMAN = 12
 const BATAS_HASIL = 120 // batas jumlah hasil dari backend (cari_katalog limit)
@@ -33,6 +33,7 @@ function Katalog() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [detail, setDetail] = useState(null)
+  const [filterTerpakai, setFilterTerpakai] = useState(null) // filter yang benar-benar dikirim pada pencarian terakhir
 
   useEffect(() => {
     getCategories().then(setKategoriList)
@@ -47,20 +48,22 @@ function Katalog() {
     cariKatalog("", kat).then(data => {
       setKategori(kat)
       setHasil(data)
+      setFilterTerpakai({ kategori: kat, merek: [], min: 0, max: 0 })
       setHalaman(1)
     }).catch(() => setError(PESAN_GAGAL))
   }, [searchParams])
 
   // kat/mrk bisa dioper langsung (mis. dari "Lihat semua") karena setState belum berlaku di render ini
-  async function cari(kat = kategori, mrk = merek) {
-    const min = Number(hargaMin) || 0
-    const max = Number(hargaMax) || 0
+  async function cari(kat = kategori, mrk = merek, hMin = hargaMin, hMax = hargaMax) {
+    const min = Number(hMin) || 0
+    const max = Number(hMax) || 0
     if (min < 0 || max < 0) { setError("Harga tidak boleh negatif."); return }
     if (max > 0 && min > max) { setError("Harga minimum tidak boleh lebih besar dari harga maksimum."); return }
     setError("")
     setLoading(true)
     try {
       setHasil(await cariKatalog(keyword, kat, min, max, mrk))
+      setFilterTerpakai({ kategori: kat, merek: mrk, min, max })
       setHalaman(1)
       setBukaFilter(false)
     } catch {
@@ -84,6 +87,15 @@ function Katalog() {
     setKategori(kat)
     cari(kat)
     window.scrollTo({ top: 0, behavior: "smooth" })
+  }
+
+  function bersihkanFilter() {
+    setKategori("")
+    setMerek([])
+    setHargaMin("")
+    setHargaMax("")
+    if (keyword.trim()) cari("", [], "", "")
+    else reset()
   }
 
   function hapusKategori() {
@@ -112,6 +124,13 @@ function Katalog() {
   const mulai = (halaman - 1) * PER_HALAMAN
   const hasilHalaman = hasil ? hasil.slice(mulai, mulai + PER_HALAMAN) : []
   const adaFilter = kategori || merek.length > 0 || hargaMin || hargaMax
+  const ft = filterTerpakai
+  const labelFilter = ft ? [
+    ft.kategori && `Kategori ${ft.kategori}`,
+    ft.merek?.length > 0 && `Merek ${ft.merek.join(" atau ")}`,
+    ft.min > 0 && `Harga minimal ${formatRupiah(ft.min)}`,
+    ft.max > 0 && `Harga maksimal ${formatRupiah(ft.max)}`,
+  ].filter(Boolean).join(", ") : ""
 
   return (
     <div>
@@ -205,7 +224,8 @@ function Katalog() {
           </>
         ) : (
           <div className="hasil-bar">
-            <p>Tidak ada produk ditemukan.</p>
+            <p>{labelFilter ? `Tidak ada produk ditemukan dengan filter: ${labelFilter}` : "Tidak ada produk ditemukan."}</p>
+            {labelFilter && <button className="btn-kembali" onClick={bersihkanFilter}>Bersihkan filter</button>}
             <button className="btn-kembali" onClick={reset}>‹ Kembali ke katalog</button>
           </div>
         )
