@@ -103,11 +103,32 @@ def katalog_per_kategori(per_kat=4):
     return hasil
 
 
+MAKS_KATA_CARI = 6
+
+
+def _pola_ilike(kata):
+    """Nilai berkutip PostgREST untuk ILIKE '%kata%'.
+
+    Lapis 1 (ILIKE): \\, % dan _ di-escape agar dicari apa adanya, bukan wildcard.
+    Lapis 2 (PostgREST): nilai dikutip ganda sehingga koma, titik, titik dua, dan
+    tanda kurung tidak dibaca sebagai sintaks penyaring; \\ dan " di-escape.
+    """
+    k = kata.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    k = k.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"%{k}%"'
+
+
 def cari_katalog(keyword="", kategori=None, harga_min=0, harga_max=0, merek=None, limit=120):
-    """Cari langsung di database, kembalikan yang cocok saja (cepat)."""
+    """Cari langsung di database, kembalikan yang cocok saja (cepat).
+
+    Kata kunci dipecah per spasi (maks MAKS_KATA_CARI kata); produk cocok bila SETIAP
+    kata muncul di brand atau product (tak peka huruf besar kecil, boleh potongan kata).
+    """
     query = supabase.table("produk").select(KOLOM_PRODUK)
-    if keyword:
-        query = query.or_(f"product.ilike.%{keyword}%,brand.ilike.%{keyword}%")
+    # '*' diubah PostgREST menjadi wildcard dan tak bisa di-escape, jadi dianggap pemisah kata
+    for kata in (keyword or "").replace("*", " ").split()[:MAKS_KATA_CARI]:
+        pola = _pola_ilike(kata)
+        query = query.or_(f"product.ilike.{pola},brand.ilike.{pola}")  # tiap or_ digabung AND
     query = _saring(query, [kategori] if kategori else None, merek, harga_min, harga_max)
     data = query.limit(limit).execute()
     return [_tambah_kandungan(r) for r in data.data]
