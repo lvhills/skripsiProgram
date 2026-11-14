@@ -7,7 +7,8 @@ supabase = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
 
 KOLOM_PRODUK = ("product_id, product, brand, category, price, rating, "
                 "star_1, star_2, star_3, star_4, star_5, total_review, "
-                "recommended_percentage, image_url, bahan_aktif, description")
+                "recommended_percentage, image_url, bahan_aktif, description, "
+                "data_diperbarui_pada")
 
 BATAS_PER_HALAMAN = 1000  # batas baris per permintaan Supabase
 

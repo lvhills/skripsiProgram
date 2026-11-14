@@ -10,6 +10,14 @@ export function formatRupiah(angka) {
   return "Rp" + Number(angka || 0).toLocaleString("id-ID")
 }
 
+// "2026-11-14T06:24:25+00:00" -> "14 November 2026" (WIB); null bila kosong/tidak valid
+export function formatTanggalWIB(iso) {
+  if (!iso) return null
+  const d = new Date(iso)
+  if (isNaN(d)) return null
+  return d.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta" })
+}
+
 export function inisialMerek(brand) {
   return brand?.slice(0, 2).toUpperCase()
 }

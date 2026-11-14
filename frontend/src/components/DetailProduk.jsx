@@ -1,4 +1,4 @@
-import { WARNA_SEGMEN, formatRupiah, inisialMerek } from "../utils"
+import { WARNA_SEGMEN, formatRupiah, formatTanggalWIB, inisialMerek } from "../utils"
 
 function ProfilSegmen({ produk }) {
   const anggota = produk.keanggotaan || []
@@ -49,6 +49,7 @@ function RincianRating({ produk }) {
 function DetailProduk({ produk, onClose, onJadikanAcuan }) {
   if (!produk) return null
   const kand = produk.kandungan || []
+  const tglData = formatTanggalWIB(produk.data_diperbarui_pada)
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -68,6 +69,11 @@ function DetailProduk({ produk, onClose, onJadikanAcuan }) {
               <div className="modal-rating">★ {produk.rating} · {produk.total_review} ulasan</div>
             )}
             <div className="modal-harga">{formatRupiah(produk.price)}</div>
+            <div className="modal-segar">
+              {tglData
+                ? `Harga dan ulasan per ${tglData}, sumber Female Daily`
+                : "Harga dan ulasan mengacu pada data hasil pengumpulan awal, sumber Female Daily"}
+            </div>
 
             <div className="modal-sect">Kategori</div>
             <div>{produk.category}</div>
