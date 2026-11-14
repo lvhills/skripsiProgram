@@ -15,6 +15,12 @@ def kategori():
     return produk_controller.get_categories_with_image()
 
 
+@router.get("/metadata")
+def metadata():
+    """Info global data produk, mis. kapan data terakhir diperbarui."""
+    return produk_controller.get_metadata()
+
+
 @router.get("/katalog/cari")
 def cari_katalog(
     keyword: str = "",

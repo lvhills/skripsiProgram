@@ -92,6 +92,18 @@ def get_filtered_ids(categories=None, brands=None, min_price=0, max_price=0):
     return [d["product_id"] for d in rows]
 
 
+def get_data_diperbarui_terakhir():
+    """Nilai terbesar data_diperbarui_pada (ISO string), atau None bila semua NULL.
+
+    Sengaja tanpa lru_cache: nilai ini berubah setiap job pembaruan berjalan.
+    NULL disaring dulu karena urutan DESC di PostgreSQL menaruh NULL paling atas.
+    """
+    hasil = (supabase.table("produk").select("data_diperbarui_pada")
+             .not_.is_("data_diperbarui_pada", "null")
+             .order("data_diperbarui_pada", desc=True).limit(1).execute())
+    return hasil.data[0]["data_diperbarui_pada"] if hasil.data else None
+
+
 # ===== Katalog =====
 @lru_cache(maxsize=1)
 def katalog_per_kategori(per_kat=4):

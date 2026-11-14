@@ -61,6 +61,10 @@ export function cariKatalog(keyword, kategori, hargaMin, hargaMax, merek) {
   return ambil(`/katalog/cari?${params}`)
 }
 
+export function getMetadata() {
+  return ambil("/metadata")
+}
+
 export function katalogPerKategori() {
   return ambil("/katalog/per-kategori")
 }

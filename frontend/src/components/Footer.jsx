@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom"
+import { useTanggalData } from "../hooks/useTanggalData"
 
 function Footer() {
+  const tanggalData = useTanggalData()
+
   return (
     <footer className="footer">
       <div className="footer-main">
@@ -11,6 +14,11 @@ function Footer() {
             untuk membantu menemukan produk yang sesuai dengan
             kebutuhan kulitmu.
           </p>
+          {tanggalData && (
+            <p className="footer-data">
+              Data produk diperbarui terakhir pada {tanggalData}, sumber Female Daily
+            </p>
+          )}
         </div>
 
         <div className="footer-links">

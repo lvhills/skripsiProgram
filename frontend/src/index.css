@@ -407,10 +407,6 @@ button, input, select, textarea { font-family: inherit; }
 .modal-name { font-family: 'Fraunces', serif; font-size: 24px; margin: 6px 0 8px; }
 .modal-rating { color: #C06A4A; font-size: 14px; margin-bottom: 8px; }
 .modal-harga { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
-.modal-segar {
-  font-size: 12px; line-height: 1.5; color: #8A8A8A;
-  margin: -4px 0 8px; padding-left: 8px; border-left: 2px solid #E59AAA;
-}
 .modal-sect {
   font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em;
   color: #8A8A8A; margin: 16px 0 6px; font-weight: 700;
@@ -471,6 +467,7 @@ button, input, select, textarea { font-family: inherit; }
   color: #6A4A52; font-size: 13px; line-height: 1.8;
 }
 .info-catatan strong { color: #9B4A5A; }
+.info-data { margin-top: 8px; color: #8A6E75; font-size: 12px; line-height: 1.7; }
 .info-cta {
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
   margin-top: 32px; padding: 32px; border-radius: 18px;
@@ -491,6 +488,7 @@ button, input, select, textarea { font-family: inherit; }
 .footer-brand { max-width: 380px; }
 .footer-brand .brand { display: inline-block; font-size: 28px; text-decoration: none; }
 .footer-brand p { margin-top: 12px; color: #8A8A8A; font-size: 13px; line-height: 1.8; }
+.footer-brand .footer-data { margin-top: 8px; color: #999999; font-size: 12px; line-height: 1.6; }
 .footer-links { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .footer-heading { margin-bottom: 4px; font-size: 14px; font-weight: 700; color: #1A1A1A; }
 .footer-links a { color: #777777; font-size: 13px; text-decoration: none; }
