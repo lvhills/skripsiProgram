@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-/* ===== Dasar ===== */
+/* Dasar */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 img, svg { max-width: 100%; }
@@ -25,7 +25,7 @@ button, input, select, textarea { font-family: inherit; }
   padding: 24px 40px;
 }
 
-/* ===== Navbar ===== */
+/* Navbar */
 .header {
   position: sticky; top: 0; z-index: 100;
   background: #FFFFFF; border-bottom: 1px solid #F3E1E6;
@@ -42,7 +42,7 @@ button, input, select, textarea { font-family: inherit; }
 }
 .nav-links a.active { background: #FFE4EB; color: #9B4A5A; }
 
-/* ===== Komponen umum ===== */
+/* Komponen umum */
 .section-label {
   font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
   text-transform: uppercase; color: #8A8A8A; margin-bottom: 14px;
@@ -84,7 +84,7 @@ button, input, select, textarea { font-family: inherit; }
 
 /* Dropdown memakai komponen Dropdown (react-select), gayanya ada di Dropdown.jsx */
 
-/* ===== Beranda ===== */
+/* Beranda */
 .hero {
   background: linear-gradient(135deg, #E59AAA, #FFD1DC); color: #fff;
   border-radius: 18px; padding: 40px; margin-bottom: 24px;
@@ -146,7 +146,7 @@ button, input, select, textarea { font-family: inherit; }
   padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600;
 }
 
-/* ===== Rekomendasi: filter kiri + masukan kanan ===== */
+/* Rekomendasi: filter kiri + masukan kanan */
 .rec-wrap { display: flex; gap: 24px; align-items: stretch; }
 .filter-side {
   width: 260px; flex-shrink: 0;
@@ -239,7 +239,7 @@ button, input, select, textarea { font-family: inherit; }
 .hasil-head .section-label { margin-bottom: 0; }
 .urut-select { min-width: 210px; }
 
-/* ===== Katalog ===== */
+/* Katalog */
 /* Search bar + panel filter, menempel di bawah navbar saat scroll */
 .kat-atas {
   position: sticky; top: 76px; z-index: 50;
@@ -317,7 +317,7 @@ button, input, select, textarea { font-family: inherit; }
 .paging button:disabled { opacity: 0.4; cursor: not-allowed; }
 .paging-info { font-size: 14px; color: #6A6A6A; }
 
-/* ===== Grid & kartu produk (tinggi seragam) ===== */
+/* Grid & kartu produk (tinggi seragam) */
 .produk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; align-items: stretch; }
 .pcard2 {
   background: #fff; border: 1px solid #F3E1E6; border-radius: 16px; overflow: hidden;
@@ -357,7 +357,7 @@ button, input, select, textarea { font-family: inherit; }
 .pcard2-harga { font-weight: 700; font-size: 16px; }
 .pcard2-btns { display: flex; gap: 8px; }
 
-/* ===== Skeleton (placeholder saat memuat) ===== */
+/* Skeleton (placeholder saat memuat) */
 .skel {
   background: linear-gradient(90deg, #F6E6EB 25%, #FDF5F7 50%, #F6E6EB 75%);
   background-size: 200% 100%; animation: skel-kilau 1.4s ease-in-out infinite;
@@ -375,7 +375,7 @@ button, input, select, textarea { font-family: inherit; }
 .skel-chip-besar { height: 42px; border-radius: 24px; }
 .pcard2-foot .skel-line { margin-bottom: 0; }
 
-/* ===== Popup detail produk ===== */
+/* Popup detail produk */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.4);
   display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px;
@@ -425,7 +425,7 @@ button, input, select, textarea { font-family: inherit; }
 .modal-btn { width: 100%; margin-top: 24px; padding: 13px; }
 .sticky-btn { position: sticky; bottom: 0; }
 
-/* ===== Informasi ===== */
+/* Informasi */
 .informasi-page { padding-top: 8px; padding-bottom: 24px; }
 .informasi-page .page-sub { max-width: 640px; line-height: 1.7; margin-bottom: 8px; }
 .info-section { margin-top: 32px; }
@@ -481,7 +481,7 @@ button, input, select, textarea { font-family: inherit; }
 }
 .info-cta-button:hover { transform: translateY(-2px); }
 
-/* ===== Footer ===== */
+/* Footer */
 .footer { margin-top: 64px; padding: 36px 40px 20px; background: #FFFFFF; border-top: 1px solid #F3E1E6; }
 .footer-main, .footer-bottom { max-width: 1150px; margin-left: auto; margin-right: auto; }
 .footer-main { display: flex; justify-content: space-between; gap: 48px; padding-bottom: 28px; }
@@ -498,7 +498,7 @@ button, input, select, textarea { font-family: inherit; }
   display: flex; justify-content: space-between; gap: 16px; color: #999999; font-size: 12px;
 }
 
-/* ===== Responsif =====
+/* Responsif
    Pastikan index.html punya:
    <meta name="viewport" content="width=device-width, initial-scale=1" />
 

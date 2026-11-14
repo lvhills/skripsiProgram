@@ -11,16 +11,15 @@ def _baca_json(nama_file):
         return json.load(f)
 
 
-# ===== Muat artefak hasil pelatihan FCM =====
-# Ketiga matriks diindeks dengan nomor baris yang sama (urutan produk dari notebook).
-CENTERS = np.load(ARTEFAK / "cluster_centers.npy")        # (c, 40)
-MEMBERSHIP = np.load(ARTEFAK / "membership_matrix.npy")   # (n, c)
-FEATURES = np.load(ARTEFAK / "feature_matrix.npy")        # (n, 40)
+# Memuat artefak hasil pelatihan FCM
+CENTERS = np.load(ARTEFAK / "cluster_centers.npy")  
+MEMBERSHIP = np.load(ARTEFAK / "membership_matrix.npy")
+FEATURES = np.load(ARTEFAK / "feature_matrix.npy")
 feature_names = _baca_json("feature_names.json")
 seg_labels = _baca_json("segment_labels.json")
 M = _baca_json("config.json")["m"]  # fuzzifier yang dipakai saat pelatihan
 
-# ===== Pemetaan product_id <-> baris artefak =====
+# Pemetaan product_id <-> baris artefak
 # product_ids.npy menyimpan product_id untuk tiap baris, sesuai urutan matriks
 # (diambil dari kolom product_id di membership.parquet).
 product_ids = np.load(ARTEFAK / "product_ids.npy")
@@ -32,7 +31,7 @@ fni = {name: k for k, name in enumerate(feature_names)}
 segment_of_product = np.argmax(MEMBERSHIP, axis=1)
 
 
-# ===== Fungsi inti =====
+# Fungsi inti
 def vektor_dari_kandungan(kandungan):
     """Vektor biner 40-dim: 1 untuk kandungan yang dipilih."""
     x = np.zeros(len(feature_names))
@@ -79,7 +78,7 @@ def topn_cosine(u_query, membership, n=5, mask=None, exclude=None,
     return idx, sim[idx], sim2[idx]
 
 
-# ===== Penghubung ke controller (product_id <-> baris) =====
+# Penghubung ke controller (product_id <-> baris)
 def _mask_dari_ids(allowed_ids):
     """None = semua produk boleh; selain itu hanya baris milik product_id yang lolos filter."""
     if allowed_ids is None:
@@ -98,7 +97,7 @@ def _ke_hasil(idx, sim):
             for i, s in zip(idx, sim) if np.isfinite(s)]
 
 
-# ===== Tiga jalur masukan =====
+# Tiga jalur masukan
 def rekomendasi_dari_kandungan(kandungan, top_n=5, allowed_ids=None):
     """Jalur masalah kulit: dari daftar kandungan hasil pemetaan masalah kulit."""
     xq = vektor_dari_kandungan(kandungan)
@@ -134,7 +133,7 @@ def compute_topn_from_product(product_id, top_n=5, allowed_ids=None):
     return _ke_hasil(idx, sim)
 
 
-# ===== Info segmen tiap produk =====
+# Info segmen tiap produk
 def _label_segmen(j):
     return seg_labels.get(str(j), f"Segmen {j}")
 

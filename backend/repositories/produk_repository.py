@@ -104,7 +104,7 @@ def get_data_diperbarui_terakhir():
     return hasil.data[0]["data_diperbarui_pada"] if hasil.data else None
 
 
-# ===== Katalog =====
+# Katalog
 @lru_cache(maxsize=1)
 def katalog_per_kategori(per_kat=4):
     """Ambil sedikit produk tiap kategori langsung dari DB (di-cache sekali)."""
