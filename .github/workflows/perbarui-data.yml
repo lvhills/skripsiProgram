@@ -1,0 +1,47 @@
+name: Perbarui data produk
+
+on:
+  schedule:
+    # Senin 02.00 WIB = Minggu 19.00 UTC (cron GitHub memakai UTC)
+    - cron: "0 19 * * 0"
+  workflow_dispatch:
+    inputs:
+      uji:
+        description: "Mode uji: jalankan seluruh proses tanpa menulis ke basis data"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perbarui-data
+  cancel-in-progress: false
+
+jobs:
+  perbarui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Pasang dependensi
+        run: pip install requests==2.32.3 supabase==2.33.0
+
+      - name: Jalankan pembaruan
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          FD_API_KEY: ${{ secrets.FD_API_KEY }}
+          # Jadwal tidak punya input -> kosong -> mode tulis. Manual -> ikut kotak centang.
+          MODE_UJI: ${{ github.event_name == 'workflow_dispatch' && inputs.uji }}
+        run: |
+          if [ "$MODE_UJI" = "true" ]; then
+            python scripts/perbarui_data.py --uji
+          else
+            python scripts/perbarui_data.py
+          fi
